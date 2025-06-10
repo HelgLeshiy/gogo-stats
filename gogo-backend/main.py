@@ -27,7 +27,7 @@ def flask_player():
     nickname = req["nickname"]
     id = req["id"]
     lvl = req["lvl"]
-    cls = req["cls"]
+    cls = req["class"]
     stage = req["stage"]
     power = req["power"]
 
