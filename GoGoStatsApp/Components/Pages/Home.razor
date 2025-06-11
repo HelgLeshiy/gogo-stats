@@ -79,7 +79,7 @@
 
     public static async Task<PlayersResponse> GetAsync(HttpClient httpClient)
     {
-        using HttpResponseMessage response = await httpClient.GetAsync("http://stream1.transcriptic.ru:5997/players");
+        using HttpResponseMessage response = await httpClient.GetAsync("http://stream1.transcriptic.ru:5997/v1/players");
 
         response.EnsureSuccessStatusCode();
 

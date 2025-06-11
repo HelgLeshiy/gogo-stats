@@ -50,7 +50,7 @@ def flask_players():
     players = []
     with conn.cursor(cursor_factory = NamedTupleCursor) as curs:
         curs.execute('''
-                    select t.id, t.nickname, t.lvl, t.class, t.stage, t.power, t.date
+                    select t.id, t.nickname, t.lvl, t.cls, t.stage, t.power, t.date
                     from gogo_stats t
                     inner join (
                         select id, max(date) as MaxDate
