@@ -48,9 +48,9 @@ def flask_players():
 
     conn = psycopg2.connect(dbname='kakebo', user='whisper', password='2whisper2', host='91.105.196.201', port="5000")
     players = []
-    with conn.cursor(cursor_factory = NamedTupleCursor) as curs:
+    with conn.cursor() as curs:
         curs.execute('''
-                    select t.id, t.nickname, t.lvl, t.cls, t.stage, t.power, t.date
+                    select t.id, t.nickname, t.lvl, t.class, t.stage, t.power, t.date
                     from gogo_stats t
                     inner join (
                         select id, max(date) as MaxDate
@@ -61,13 +61,13 @@ def flask_players():
         rows = curs.fetchall()
         for row in rows:
             players.append({
-                "id": row.id,
-                "nickname": row.nickname,
-                "lvl": row.lvl,
-                "cls": row.cls,
-                "stage": row.stage,
-                "power": row.power,
-                "update_date": row.date
+                "id": row[0],
+                "nickname": row[1],
+                "lvl": row[2],
+                "cls": row[3],
+                "stage": row[4],
+                "power": row[5],
+                "update_date": row[6]
             })
 
     conn.close()
