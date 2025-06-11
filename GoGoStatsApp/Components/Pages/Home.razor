@@ -1,64 +1,376 @@
 ﻿@page "/"
 @rendermode InteractiveServer
 @using ChartJs.Blazor;
+@using ChartJs.Blazor.BarChart
 @using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Common.Enums
+@using ChartJs.Blazor.Common.Handlers
+@using ChartJs.Blazor.Interop
 @using ChartJs.Blazor.PieChart
 @using ChartJs.Blazor.Util
 @using Newtonsoft.Json
+@using System.Drawing
+@using System.Collections.ObjectModel
+@using Newtonsoft.Json.Linq
 
-<PageTitle>Home</PageTitle>
+<PageTitle>Go Go Stats</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1 style="color: white; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-family: 'M PLUS Rounded 1c', sans-serif">Go Go Stats</h1>
 
-<Chart Config="_config"></Chart>
+@if (_players != null)
+{
+    <div class="container text-center">
+        <div class="row">
+            <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
+                <Chart Config="_pieConfig"></Chart>
+            </div>
+            <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
+                <Chart Config="_barConfigPower"></Chart>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
+                <Chart Config="_barConfigLvl"></Chart>
+            </div>
+            <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
+                <Chart Config="_barConfigStage"></Chart>
+            </div>
+        </div>
 
-<h1>Bye world!</h1>
+        <div class="row">
+            <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Id</th>
+                            <th scope="col">Nickname</th>
+                            <th scope="col">Lvl</th>
+                            <th scope="col">Class</th>
+                            <th scope="col">Story Stage</th>
+                            <th scope="col">Power</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (int i = 0; i < _players.Count; ++i)
+                        {
+                            <tr>
+                                <th scope="row">@(i+1)</th>
+                                <td>@_players[i].id</td>
+                                <td>@_players[i].nickname</td>
+                                <td>@_players[i].lvl</td>
+                                <td>@_players[i].cls</td>
+                                <td>@_players[i].stage</td>
+                                <td>@_players[i].power</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+			</div>
+        </div>
+    </div>
+}
 
 @code {
-    private PieConfig? _config;
+    private PieConfig? _pieConfig;
+    private BarConfig? _barConfigPower;
+    private BarConfig? _barConfigLvl;
+    private BarConfig? _barConfigStage;
     private List<PlayerInfo>? _players;
+
+    public static class SampleUtils
+    {
+        private static readonly Random _rng = new Random();
+
+        public static class ChartColors
+        {
+            private static readonly Lazy<IReadOnlyList<Color>> _all = new Lazy<IReadOnlyList<Color>>(() => new Color[7]
+            {
+                Red, Orange, Yellow, Green, Blue, Purple, Grey
+            });
+
+            public static IReadOnlyList<Color> All => _all.Value;
+
+            public static readonly Color Red = Color.FromArgb(255, 99, 132);
+            public static readonly Color Orange = Color.FromArgb(255, 159, 64);
+            public static readonly Color Yellow = Color.FromArgb(255, 205, 86);
+            public static readonly Color Green = Color.FromArgb(75, 192, 192);
+            public static readonly Color Blue = Color.FromArgb(54, 162, 235);
+            public static readonly Color Purple = Color.FromArgb(153, 102, 255);
+            public static readonly Color Grey = Color.FromArgb(201, 203, 207);
+        }
+
+        public static IReadOnlyList<string> Months { get; } = new ReadOnlyCollection<string>(new[]
+        {
+            "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+        });
+
+        private static int RandomScalingFactorThreadUnsafe() => _rng.Next(-100, 100);
+
+        public static int RandomScalingFactor()
+        {
+            lock (_rng)
+            {
+                return RandomScalingFactorThreadUnsafe();
+            }
+        }
+
+        public static IEnumerable<int> RandomScalingFactor(int count)
+        {
+            int[] factors = new int[count];
+            lock (_rng)
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    factors[i] = RandomScalingFactorThreadUnsafe();
+                }
+            }
+
+            return factors;
+        }
+
+        public static IEnumerable<DateTime> GetNextDays(int count)
+        {
+            DateTime now = DateTime.Now;
+            DateTime[] factors = new DateTime[count];
+            for (int i = 0; i < factors.Length; i++)
+            {
+                factors[i] = now.AddDays(i);
+            }
+
+            return factors;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        _config = new PieConfig
-        {
-            Options = new PieOptions
-            {
-                Responsive = true,
-                Title = new OptionsTitle
-                {
-                    Display = true,
-                    Text = "ChartJs.Blazor Pie Chart"
-                }
-            }
-        };
-
         HttpClient httpClient = new HttpClient();
         var playersRes = await GetAsync(httpClient);
+        _players = playersRes.players;
 
-        var counters = new Dictionary<string, int>();
-
-        foreach (PlayerInfo player in playersRes.players)
         {
-            if (counters.ContainsKey(player.cls))
-            {
-                counters[player.cls]++;
-            }
-            else
-            {
-                counters[player.cls] = 1;
-            }
-        }
+            _pieConfig = new PieConfig
+                {
+                    Options = new PieOptions
+                    {
+                        Responsive = true,
+                        Title = new OptionsTitle
+                        {
+                            Display = true,
+                            Text = "Classes"
+                        }
+                    }
+                };
 
-        foreach (string cls in counters.Keys)
+            var counters = new Dictionary<string, int>();
+
+            foreach (PlayerInfo player in playersRes.players)
+            {
+                if (counters.ContainsKey(player.cls))
+                {
+                    counters[player.cls]++;
+                }
+                else
+                {
+                    counters[player.cls] = 1;
+                }
+            }
+
+            foreach (string cls in counters.Keys)
+            {
+                _pieConfig.Data.Labels.Add(cls);
+            }
+
+            PieDataset<int> dataset = new PieDataset<int>(counters.Values)
+                {
+                    BackgroundColor = SampleUtils.ChartColors.All.Take(counters.Values.Count).Select(ColorUtil.FromDrawingColor).ToArray()
+                };
+
+            _pieConfig.Data.Datasets.Add(dataset);
+        }
         {
-            _config.Data.Labels.Add(cls);
+            _barConfigPower = new BarConfig
+            {
+                Options = new BarOptions
+                {
+                    Responsive = true,
+                    Legend = new Legend
+                    {
+                        Position = Position.Top
+                    },
+                    Title = new OptionsTitle
+                    {
+                        Display = true,
+                        Text = "Power Distribution"
+                    },
+                }
+            };
+
+            int max_power = playersRes.players.MaxBy(p => p.power).power + 50000;
+
+            List<int> ranges = new List<int>();
+            for (int i = 0; i < max_power; i += 50000)
+            {
+                ranges.Add(i);
+            }
+            Dictionary<int, int> range_counters = new Dictionary<int, int>();
+            for (int i = 0; i < ranges.Count; ++i)
+            {
+                range_counters.Add(i, 0);
+            }
+
+            foreach (PlayerInfo player in playersRes.players)
+            {
+                bool found_range = false;
+                for (int i = 0; i < ranges.Count - 1; ++i)
+                {
+                    if (player.power >= ranges[i] && player.power < ranges[i + 1])
+                    {
+                        found_range = true;
+                        range_counters[i]++;
+                        break;
+                    }
+                }
+            }
+
+            IDataset<int> dataset1 = new BarDataset<int>(range_counters.Values)
+            {
+                Label = "Server 62",
+                BackgroundColor = ColorUtil.FromDrawingColor(Color.FromArgb(128, SampleUtils.ChartColors.Red)),
+                BorderColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Red),
+                BorderWidth = 1
+            };
+
+            foreach (int rng in ranges)
+            {
+                _barConfigPower.Data.Labels.Add(rng.ToString());
+            }
+
+            _barConfigPower.Data.Datasets.Add(dataset1);
         }
+        {
+            _barConfigLvl = new BarConfig
+            {
+                Options = new BarOptions
+                {
+                    Responsive = true,
+                    Legend = new Legend
+                    {
+                        Position = Position.Top
+                    },
+                    Title = new OptionsTitle
+                    {
+                        Display = true,
+                        Text = "Level Distribution"
+                    }
+                }
+            };
 
-        PieDataset<int> dataset = new PieDataset<int>(counters.Values);
+            int max_lvl = playersRes.players.MaxBy(p => p.lvl).lvl + 10;
 
-        _config.Data.Datasets.Add(dataset);
+            List<int> ranges = new List<int>();
+            for (int i = 0; i < max_lvl; i += 10)
+            {
+                ranges.Add(i);
+            }
+            Dictionary<int, int> range_counters = new Dictionary<int, int>();
+            for (int i = 0; i < ranges.Count; ++i)
+            {
+                range_counters.Add(i, 0);
+            }
+
+            foreach (PlayerInfo player in playersRes.players)
+            {
+                bool found_range = false;
+                for (int i = 0; i < ranges.Count - 1; ++i)
+                {
+                    if (player.lvl >= ranges[i] && player.lvl < ranges[i + 1])
+                    {
+                        found_range = true;
+                        range_counters[i]++;
+                        break;
+                    }
+                }
+            }
+
+            IDataset<int> dataset1 = new BarDataset<int>(range_counters.Values)
+            {
+                Label = "Server 62",
+                BackgroundColor = ColorUtil.FromDrawingColor(Color.FromArgb(128, SampleUtils.ChartColors.Blue)),
+                BorderColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Blue),
+                BorderWidth = 1
+            };
+
+            foreach (int rng in ranges)
+            {
+                _barConfigLvl.Data.Labels.Add((rng % 80).ToString());
+            }
+
+            _barConfigLvl.Data.Datasets.Add(dataset1);
+        }
+        {
+            _barConfigStage = new BarConfig
+            {
+                Options = new BarOptions
+                {
+                    Responsive = true,
+                    Legend = new Legend
+                    {
+                        Position = Position.Top
+                    },
+                    Title = new OptionsTitle
+                    {
+                        Display = true,
+                        Text = "Main Story Stage Distribution"
+                    }
+                }
+            };
+
+            int max_stage = playersRes.players.MaxBy(p => p.stage).stage + 100;
+
+            List<int> ranges = new List<int>();
+            for (int i = 0; i < max_stage; i += 100)
+            {
+                ranges.Add(i);
+            }
+            Dictionary<int, int> range_counters = new Dictionary<int, int>();
+            for (int i = 0; i < ranges.Count; ++i)
+            {
+                range_counters.Add(i, 0);
+            }
+
+            foreach (PlayerInfo player in playersRes.players)
+            {
+                bool found_range = false;
+                for (int i = 0; i < ranges.Count - 1; ++i)
+                {
+                    if (player.stage >= ranges[i] && player.stage < ranges[i + 1])
+                    {
+                        found_range = true;
+                        range_counters[i]++;
+                        break;
+                    }
+                }
+            }
+
+            IDataset<int> dataset1 = new BarDataset<int>(range_counters.Values)
+            {
+                Label = "Server 62",
+                BackgroundColor = ColorUtil.FromDrawingColor(Color.FromArgb(128, SampleUtils.ChartColors.Blue)),
+                BorderColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Blue),
+                BorderWidth = 1
+            };
+
+            foreach (int rng in ranges)
+            {
+                _barConfigStage.Data.Labels.Add(rng.ToString());
+            }
+
+            _barConfigStage.Data.Datasets.Add(dataset1);
+        }
     }
+
 
     public class PlayerInfo
     {
@@ -75,7 +387,6 @@
     {
         public List<PlayerInfo> players { get; set; }
     }
-
 
     public static async Task<PlayersResponse> GetAsync(HttpClient httpClient)
     {

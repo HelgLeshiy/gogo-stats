@@ -57,6 +57,7 @@ def flask_players():
                         from gogo_stats
                         group by id
                     ) tm on t.id = tm.id and t.date = tm.MaxDate
+                    order by t.power desc
                     ''')
         rows = curs.fetchall()
         for row in rows:

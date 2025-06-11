@@ -12,6 +12,44 @@ a, .btn-link {
     border-color: #1861ac;
 }
 
+.ltgphdvgzh {
+    top: 0;
+}
+
+@keyframes scrollBackground {
+    0% {
+        transform: translateY(0);
+    }
+
+    to {
+        transform: translateY(-100%);
+    }
+}
+
+.p3-bg {
+    background: #cce9f7 url(https://rescdn.imtxwy.com/muffin/kr/home/p3-bg.webp);
+    display: block;
+    text-align: center;
+    box-sizing: border-box;
+    padding-top: 0;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: fixed
+}
+
+.animation_bg {
+    width: 100%;
+    height: 100vh;
+    left: 0;
+    row-gap: 0;
+    -moz-column-gap: 0;
+    column-gap: 0;
+    background: url(https://rescdn.imtxwy.com/muffin/kr/home/p2-bg.webp) no-repeat center center / cover;
+    animation: scrollBackground 15s linear infinite;
+    z-index: 1;
+}
+
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
