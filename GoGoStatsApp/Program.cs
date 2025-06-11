@@ -14,11 +14,18 @@ if (!app.Environment.IsDevelopment())
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
-app.UseStaticFiles();
-app.UseAntiforgery();
+app.Map("/gogostats", gogostatsApp =>
+{
+    gogostatsApp.UseRouting();
 
-app.MapRazorComponents<App>()
-    .AddInteractiveServerRenderMode();
-app.UsePathBase("/gogostats");
+    gogostatsApp.UseStaticFiles();
+    gogostatsApp.UseAntiforgery();
+
+    gogostatsApp.UseEndpoints(endPoints =>
+    {
+        endPoints.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+    });
+});
 
 app.Run();
