@@ -19,5 +19,6 @@ app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+app.UsePathBase("/gogostats");
 
 app.Run();
