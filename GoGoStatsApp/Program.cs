@@ -8,24 +8,20 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
+app.UsePathBase(new PathString("/gogostats"));
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
 }
 
-app.Map("/gogostats", gogostatsApp =>
-{
-    gogostatsApp.UseRouting();
+app.UseRouting();
 
-    gogostatsApp.UseStaticFiles();
-    gogostatsApp.UseAntiforgery();
+app.UseStaticFiles();
+app.UseAntiforgery();
 
-    gogostatsApp.UseEndpoints(endPoints =>
-    {
-        endPoints.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
-    });
-});
+app.MapRazorComponents<App>()
+        .AddInteractiveServerRenderMode();
 
 app.Run();
