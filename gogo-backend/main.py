@@ -19,7 +19,7 @@ logger.info("starting server...")
 app = Flask("magav2")
 
 @app.route('/v1/players/add', methods=['POST'])
-def flask_player():
+def flask_players_add():
     logger.info("flask request", extra={"tags": {"url": request.url}})
     req = request.get_json()
     print(req)
@@ -43,7 +43,7 @@ def flask_player():
     return "", 200
 
 @app.route('/v1/players', methods=['GET'])
-def flask_player():
+def flask_players():
     logger.info("flask request", extra={"tags": {"url": request.url}})
 
     conn = psycopg2.connect(dbname='kakebo', user='whisper', password='2whisper2', host='91.105.196.201', port="5000")

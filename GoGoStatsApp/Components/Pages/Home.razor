@@ -4,6 +4,7 @@
 @using ChartJs.Blazor.Common
 @using ChartJs.Blazor.PieChart
 @using ChartJs.Blazor.Util
+@using Newtonsoft.Json
 
 <PageTitle>Home</PageTitle>
 
@@ -15,8 +16,9 @@
 
 @code {
     private PieConfig? _config;
+    private List<PlayerInfo>? _players;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _config = new PieConfig
         {
@@ -31,22 +33,59 @@
             }
         };
 
-        foreach (string color in new[] { "Red", "Yellow", "Green", "Blue" })
+        HttpClient httpClient = new HttpClient();
+        var playersRes = await GetAsync(httpClient);
+
+        var counters = new Dictionary<string, int>();
+
+        foreach (PlayerInfo player in playersRes.players)
         {
-            _config.Data.Labels.Add(color);
+            if (counters.ContainsKey(player.cls))
+            {
+                counters[player.cls]++;
+            }
+            else
+            {
+                counters[player.cls] = 1;
+            }
         }
 
-        PieDataset<int> dataset = new PieDataset<int>(new[] { 6, 5, 3, 7 })
+        foreach (string cls in counters.Keys)
         {
-            BackgroundColor = new[]
-            {
-                ColorUtil.ColorHexString(255, 99, 132), // Slice 1 aka "Red"
-                ColorUtil.ColorHexString(255, 205, 86), // Slice 2 aka "Yellow"
-                ColorUtil.ColorHexString(75, 192, 192), // Slice 3 aka "Green"
-                ColorUtil.ColorHexString(54, 162, 235), // Slice 4 aka "Blue"
-            }
-        };
+            _config.Data.Labels.Add(cls);
+        }
+
+        PieDataset<int> dataset = new PieDataset<int>(counters.Values);
 
         _config.Data.Datasets.Add(dataset);
     }
+
+    public class PlayerInfo
+    {
+        public int id { get; set; }
+        public string nickname { get; set; }
+        public int lvl { get; set; }
+        public string cls { get; set; }
+        public int stage { get; set; }
+        public int power { get; set; }
+        public DateTime update_date { get; set; }
+    }
+
+    public class PlayersResponse
+    {
+        public List<PlayerInfo> players { get; set; }
+    }
+
+
+    public static async Task<PlayersResponse> GetAsync(HttpClient httpClient)
+    {
+        using HttpResponseMessage response = await httpClient.GetAsync("http://stream1.transcriptic.ru:5997/players");
+
+        response.EnsureSuccessStatusCode();
+
+        var jsonString = await response.Content.ReadAsStringAsync();
+        var result = JsonConvert.DeserializeObject<PlayersResponse>(jsonString);
+        return result;
+    }
+
 }
