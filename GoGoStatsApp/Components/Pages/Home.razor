@@ -16,6 +16,7 @@
 <PageTitle>Go Go Stats</PageTitle>
 
 <h1 style="color: white; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-family: 'M PLUS Rounded 1c', sans-serif">Go Go Stats</h1>
+<h5 style="color: white; text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000; font-family: 'M PLUS Rounded 1c', sans-serif">Last update: @last_update</h5>
 
 @if (_players != null)
 {
@@ -49,6 +50,7 @@
                             <th scope="col">Class</th>
                             <th scope="col">Story Stage</th>
                             <th scope="col">Power</th>
+                            <th scope="col">Updated</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -62,6 +64,7 @@
                                 <td>@_players[i].cls</td>
                                 <td>@_players[i].stage</td>
                                 <td>@_players[i].power</td>
+                                <td>@_players[i].update_date</td>
                             </tr>
                         }
                     </tbody>
@@ -78,6 +81,7 @@
     private BarConfig? _barConfigLvl;
     private BarConfig? _barConfigStage;
     private List<PlayerInfo>? _players;
+    private DateTime? last_update;
 
     public static class SampleUtils
     {
@@ -148,6 +152,8 @@
         HttpClient httpClient = new HttpClient();
         var playersRes = await GetAsync(httpClient);
         _players = playersRes.players;
+
+        last_update = playersRes.players.MaxBy(p => p.update_date).update_date;
 
         {
             _pieConfig = new PieConfig
