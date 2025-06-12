@@ -8,8 +8,6 @@ builder.Services.AddRazorComponents()
 
 var app = builder.Build();
 
-app.UsePathBase(new PathString("/gogostats"));
-
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
