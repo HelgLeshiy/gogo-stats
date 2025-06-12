@@ -16,6 +16,15 @@ a, .btn-link {
     top: 0;
 }
 
+.table-responsive {
+}
+
+@media (max-width: 777px) {
+    .table-responsive {
+        font-size: 10px !important;
+    }
+}
+
 @keyframes scrollBackground {
     0% {
         transform: translateY(0);
