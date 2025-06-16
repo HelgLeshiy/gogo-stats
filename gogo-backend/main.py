@@ -42,6 +42,27 @@ def flask_players_add():
 
     return "", 200
 
+@app.route('/v1/players/dmg_add', methods=['POST'])
+def flask_players_dmg_add():
+    logger.info("flask request", extra={"tags": {"url": request.url}})
+    req = request.get_json()
+    print(req)
+
+    id = req["id"]
+    dmg = req["dmg"]
+
+    now = datetime.datetime.now(datetime.timezone.utc)
+
+    conn = psycopg2.connect(dbname='kakebo', user='whisper', password='2whisper2', host='91.105.196.201', port="5000")
+    rowcount = 0
+    with conn.cursor() as curs:
+        curs.execute('UPDATE gogo_stats SET dragon_dmg = %s WHERE id = %s AND date = (SELECT MAX(date) from gogo_stats WHERE id = %s)', (dmg, id, id,))
+        rowcount = curs.rowcount
+    conn.commit()
+    conn.close()
+
+    return str(rowcount), 200
+
 @app.route('/v1/players', methods=['GET'])
 def flask_players():
     logger.info("flask request", extra={"tags": {"url": request.url}})
@@ -50,7 +71,7 @@ def flask_players():
     players = []
     with conn.cursor() as curs:
         curs.execute('''
-                    select t.id, t.nickname, t.lvl, t.class, t.stage, t.power, t.date
+                    select t.id, t.nickname, t.lvl, t.class, t.stage, t.power, t.dragon_dmg, t.date
                     from gogo_stats t
                     inner join (
                         select id, max(date) as MaxDate
@@ -68,7 +89,8 @@ def flask_players():
                 "cls": row[3],
                 "stage": row[4],
                 "power": row[5],
-                "update_date": row[6]
+                "dragon_dmg": 0 if row[6] is None else row[6],
+                "update_date": row[7]
             })
 
     conn.close()

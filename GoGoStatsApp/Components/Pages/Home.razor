@@ -50,6 +50,7 @@
                             <th scope="col">Class</th>
                             <th scope="col">Story Stage</th>
                             <th scope="col">Power</th>
+                            <th scope="col">Dragon Dmg</th>
                             <th scope="col">Updated</th>
                         </tr>
                     </thead>
@@ -81,6 +82,7 @@
                                 <td>@_players[i].cls</td>
                                 <td>@_players[i].stage</td>
                                 <td>@_players[i].power</td>
+                                <td>@_players[i].dragon_dmg</td>
                                 <td>@_players[i].update_date</td>
                             </tr>
                         }
@@ -180,7 +182,7 @@
                         Title = new OptionsTitle
                         {
                             Display = true,
-                            Text = "Classes"
+                            Text = "Classes power"
                         }
                     }
                 };
@@ -191,11 +193,11 @@
             {
                 if (counters.ContainsKey(player.cls))
                 {
-                    counters[player.cls]++;
+                    counters[player.cls] += player.power;
                 }
                 else
                 {
-                    counters[player.cls] = 1;
+                    counters[player.cls] = player.power;
                 }
             }
 
@@ -402,6 +404,7 @@
         public string cls { get; set; }
         public int stage { get; set; }
         public int power { get; set; }
+        public int dragon_dmg { get; set; }
         public DateTime update_date { get; set; }
     }
 
