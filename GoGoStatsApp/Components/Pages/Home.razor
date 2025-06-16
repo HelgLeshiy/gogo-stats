@@ -3,10 +3,13 @@
 @using ChartJs.Blazor;
 @using ChartJs.Blazor.BarChart
 @using ChartJs.Blazor.Common
+@using ChartJs.Blazor.Common.Axes
 @using ChartJs.Blazor.Common.Enums
 @using ChartJs.Blazor.Common.Handlers
 @using ChartJs.Blazor.Interop
+@using ChartJs.Blazor.LineChart
 @using ChartJs.Blazor.PieChart
+@using ChartJs.Blazor.ScatterChart
 @using ChartJs.Blazor.Util
 @using Newtonsoft.Json
 @using System.Drawing
@@ -35,6 +38,11 @@
             </div>
             <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
                 <Chart Config="_barConfigStage"></Chart>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col m-1" style="background-color: #cce9f7a0;border-radius: 30px;box-shadow: 0 0 10px black;justify-items: center;">
+                <Chart Config="_scatterConfigPwrDmg"></Chart>
             </div>
         </div>
 
@@ -98,6 +106,7 @@
     private BarConfig? _barConfigPower;
     private BarConfig? _barConfigLvl;
     private BarConfig? _barConfigStage;
+    private ScatterConfig? _scatterConfigPwrDmg;
     private List<PlayerInfo>? _players;
     private DateTime? last_update;
 
@@ -392,6 +401,72 @@
             }
 
             _barConfigStage.Data.Datasets.Add(dataset1);
+        }
+        {
+            _scatterConfigPwrDmg = new ScatterConfig
+            {
+                Options = new LineOptions
+                {
+                    Responsive = true,
+                    Title = new OptionsTitle
+                    {
+                        Display = true,
+                        Text = "Damage vs Power"
+                    },
+                    Tooltips = new Tooltips
+                    {
+                        Mode = InteractionMode.Nearest,
+                        Intersect = true
+                    },
+                    Hover = new Hover
+                    {
+                        Mode = InteractionMode.Nearest,
+                        Intersect = true
+                    },
+                    Scales = new Scales
+                    {
+                        XAxes = new List<CartesianAxis>
+                        {
+                            new CategoryAxis
+                            {
+                                ScaleLabel = new ScaleLabel
+                                {
+                                    LabelString = "Power"
+                                }
+                            }
+                        },
+                        YAxes = new List<CartesianAxis>
+                        {
+                            new LinearCartesianAxis
+                            {
+                                ScaleLabel = new ScaleLabel
+                                {
+                                    LabelString = "Damage"
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            var players = playersRes.players.OrderBy(p => p.power).ToList();
+
+            List<ChartJs.Blazor.Common.Point> points = new List<ChartJs.Blazor.Common.Point>();
+            List<string> labels = new List<string>();
+            foreach (PlayerInfo player in players)
+            {
+                points.Add(new ChartJs.Blazor.Common.Point(player.power, player.dragon_dmg));
+                _scatterConfigPwrDmg.Data.XLabels.Add(player.power.ToString());
+                _scatterConfigPwrDmg.
+            }
+
+            ScatterDataset dataset1 = new ScatterDataset(points)
+            {
+                Label = "Server 62",
+                BackgroundColor = ColorUtil.FromDrawingColor(SampleUtils.ChartColors.Red)
+            };
+
+            _scatterConfigPwrDmg.Data.Datasets.Add(dataset1);
         }
     }
 
